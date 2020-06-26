@@ -1,9 +1,12 @@
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
-const usersRouter = require("express").Router()
-const User = require("../models/users")
 const { SECRET } = require("../utils/config")
 const { info, error } = require("../utils/logger")
+const { tokenValidation } = require("../utils/middleware")
+
+const User = require("../models/users")
+const usersRouter = require("express").Router()
+
 
 
 usersRouter.post("/", async (request, response) => {
@@ -27,36 +30,37 @@ usersRouter.post("/", async (request, response) => {
 
     //user saving
     const user = new User({ username, passwordHash })
-    const savedUser = await user.save((err, user) => {
+    await user.save(async (err, user) => {
         if (err) {
             error(`error saving to database ${err.message}`)
             return response.status(500).send({
                 error: "problem saving to the database"
             })
         }
+        //logs the new user
         info(`user ${user.username} saved to database`)
+
+        //creates the autentication token
+        const preToken = {
+            username: user.username,
+            id: user._id,
+        }
+        const token = await jwt.sign(preToken, SECRET)
+
+        //sends the response with the token
+        response.status(201).send({ token, username: user.username })
     })
-
-    //creates the autentication token
-    const preToken = {
-        username: user.username,
-        id: user._id,
-    }
-    const token = jwt.sign(preToken, SECRET)
-
-    response.status(201).send({ token, username: user.username })
 })
 
-usersRouter.get("/", async (request, response) => {
-
-    const users = await User.find({}).populate("blogs", { title: 1 })
+usersRouter.get("/", tokenValidation, async (request, response) => {
+    const users = await User.find({})
+        .populate("blogs", { title: 1 })
     response.json(users.map(elem => elem.toJSON()))
 })
 
 usersRouter.get("/:id", async (request, response) => {
-
-    const users = await User.findById(request.params.id).populate("blogs", { title: 1 })
-
+    const users = await User.findById(request.params.id)
+        .populate("blogs", { title: 1 })
     response.json(users.toJSON())
 })
 

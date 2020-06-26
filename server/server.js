@@ -18,26 +18,28 @@ const { errorHandler,
 // database conection
 require("./database/database")
 
-//routes imports
+//controllers imports
 const userRouter = require("./controllers/users")
 const blogRouter = require("./controllers/blogs")
 const loginRouter = require("./controllers/login")
+const productRouter = require("./controllers/products")
 
 // middleware
 app.use(cors())
 app.use(express.json())
 app.use(requestLogger)
 
-//controlers
+//controllers
 app.use("/api/users/", userRouter)
 app.use("/api/login/", loginRouter)
 app.use("/api/blogs/", blogRouter)
+app.use("/api/products/",productRouter)
 
 //error handlers
 app.use(unknownEndpoint)
 app.use(errorHandler)
 
 //server listening
-app.listen(PORT, function () {
+app.listen(PORT, () => {
     info(`Server Listening on ${PORT}`)
 })

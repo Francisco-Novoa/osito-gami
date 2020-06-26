@@ -1,60 +1,74 @@
-//imports
-const Blog = require("../models/blogs")
-const User = require("../models/users")
 const { tokenValidation } = require("../utils/middleware")
+const { info, error } = require("../utils/logger")
 
-//router creation
+const User = require("../models/users")
+const Blog = require("../models/blogs")
 const blogRouter = require("express").Router()
 
-
 blogRouter.get("/", async (request, response) => {
-    blogs = await Blog.find({}).sort({ date: 1 })
+    //finds all the blogs that are not flagged as deleted
+    blogs = await Blog.find({ deleted: false }).sort({ created_at: 1 })
     response.json(blogs.map(blog => blog.toJSON()))
 })
 
 blogRouter.get("/:id", async (request, response) => {
+    //find blog
     const blog = await Blog.findById(request.params.id)
         .populate("user", { username: 1, id: 1 })
+    //checks if there is no blog or if the blog has been flagged as deleted
+    if (!product || product.deleted) return response.send(404).send({
+        error: "blog not found"
+    })
+    //sends response
     response.json(blog.toJSON())
 })
 
 blogRouter.post("/", tokenValidation, async (request, response) => {
-
     // captures and validates the existence of all the fields
-    const { title, excerpt, userId, content } = request.body
-    if (!title || !content) return (
-        response.status(400).send({ error: "some fields are missing" })
+    const { title, userId, content } = request.body
+    let { excerpt } = request.body
+    if (!title || !content) return (response.status(400).send({
+        error: "some name or title is missing"
+    })
     )
+    if (!excerpt) excerpt = null
 
     //creates and fills the new blog
-    const blog = new Blog({ title, content })
-    Object.assign(blog, {
+    const blog = new Blog({
+        title,
+        content,
         user: userId,
         created_at: new Date,
-        deleted: false
+        lastEdited: new Date,
+        deleted: false,
+        excerpt
     })
-    if (excerpt) Object.assign(blog, { excerpt })
 
-    //saves BLog
-    const savedBlog = await blog.save((err) => {
+    //saves blog
+    await blog.save(async (err, doc) => {
         if (err) {
-            error(`error saving ${blog.title}, ${err.message}`)
+            error(err.message)
             return response.status(500).send({
-                error: "problem saving to the database"
+                error: err.message
             })
         }
+
+        info(`blog ${blog.title} saved!`)
+
+        //finds user and updates it
+        const user = await User.findById(userId)
+        user.blogs = [...user.blogs, blog.id]
+        await User.findByIdAndUpdate(userId, user)
+
+        //sends the response
+        response.status(201).json(doc.toJSON())
+
     })
 
-    //finds user and updates it
-    user = await User.findById({ id: userId })
-    user.blogs = user.blogs.concat(savedBlog._id)
-    await User.findByIdAndUpdate(userId, user)
-
-    //sends the response
-    response.send(201).json(savedBlog.toJSON())
 })
 
 blogRouter.put("/:id", tokenValidation, async (request, response) => {
+
     //capture useful data and complain if some is missing
     const { title,
         excerpt,
@@ -63,18 +77,18 @@ blogRouter.put("/:id", tokenValidation, async (request, response) => {
         created_at,
         deleted } = request.body
     const id = request.params.id
-    if (!title || !userId || !content || !created_at || !deleted) return (
+    if (!title || !content || !created_at) return (
         response.status(400).send({ error: "some fields are missing" })
     )
 
-    //find the blog and verify if the user has the rights to change it.
+    //finds the blog
     const blog = await Blog.findById(id)
-    const user = await User.findById(userId)
-    if (!blog) return response.status(404).send({ error: "blog not found" })
-    if (blog.user.toString() !== user._id || !user.admin) return response.status(403)
+    if (!blog) return response.status(404).send({
+        error: "blog not found"
+    })
 
     //change the blog
-    const updatedBlog = await Blog.findByIdAndUpdate(id, {
+    await Blog.findByIdAndUpdate(id, {
         title,
         excerpt,
         content,
@@ -83,27 +97,44 @@ blogRouter.put("/:id", tokenValidation, async (request, response) => {
         lastEdited: new Date,
         user: userId
     },
-        { new: true })
+        {
+            new: true
+        },
+        (err, doc) => {
+            //sends error
+            if (err) {
+                error(err.message)
+                return response.status(500).send(err.message)
+            }
+            //sends response
 
-    //send the response
-    response.json(updatedBlog.toJSON())
-
+            info(`blog modified ${doc.title}`)
+            response.json(doc.toJSON())
+        }
+    )
 })
 
 blogRouter.delete("/id", tokenValidation, async (request, response) => {
-    //captures the ids
-    const {userId}=request.body
-    const id = request.params.id
 
-    //find the blog and verify if the user has the rights to change it.
+    //find the product and checks if it has been flagged as deleted
+    const id = request.params.id
     const blog = await Blog.findById(id)
-    const user = await User.findById(userId)
-    if (!blog) return response.status(404).send({ error: "blog not found" })
-    if (blog.user.toString() !== user._id || !user.admin) return response.status(403)
+    if (!blog || blog.deleted) return response.status(404).send({
+        error: "blog not found"
+    })
 
     //deletes blog
-    await BlogfindByIdAndRemove(id)
-    response.status(204).end()
+    Object.assign(blog, { deleted: true })
+    Blog.findByIdAndUpdate(id, blog, {}, (err, doc) => {
+        if (err) {
+            error(err.message)
+            return response.status(500).json({
+                error: err.message
+            })
+        }
+        info(`blog ${doc.name} deleted!`)
+        response.sendStatus(204)
+    })
 })
 
 module.exports = blogRouter
