@@ -38,7 +38,7 @@ usersRouter.post("/", async (request, response) => {
             })
         }
         //logs the new user
-        info(`user ${user.username} saved to database`)
+        info(`user "${user.username}" saved to database`)
 
         //creates the autentication token
         const preToken = {

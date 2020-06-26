@@ -24,9 +24,9 @@ productRouter.get("/:id", async (request, response) => {
 
 productRouter.post("/", tokenValidation, async (request, response) => {
     //captures and validates if the fields are there
-    const { name, description, userId } = request.body
+    const { name, description, userId, price } = request.body
     let { photos } = request.body
-    if (!name || !description) return response.status(400).send({
+    if (!name || !description || !price) return response.status(400).send({
         error: "some name or description field is missing"
     })
     if (!photos) photos = []
@@ -39,6 +39,7 @@ productRouter.post("/", tokenValidation, async (request, response) => {
         created_at: new Date,
         last_edited: new Date,
         deleted: false,
+        price,
         photos,
     })
 
@@ -51,7 +52,7 @@ productRouter.post("/", tokenValidation, async (request, response) => {
             })
         }
         //logs and send the response
-        info(`product ${name} saved!`)
+        info(`product "${name}" saved!`)
         response.status(201).json(doc.toJSON())
     })
 
@@ -66,8 +67,10 @@ productRouter.put("/:id", tokenValidation, async (request, response) => {
         userId,
         description,
         photos,
+        price
     } = request.body
-    if (!name || !created_at || !description) {
+    const id = request.params.id
+    if (!name || !created_at || !description || !price) {
         response.status(400).send({ error: "some fields are missing" })
     }
 
@@ -85,7 +88,8 @@ productRouter.put("/:id", tokenValidation, async (request, response) => {
         description,
         photos,
         deleted: false,
-        last_edited: new Date,
+        lastEdited: new Date,
+        price
     },
         {
             new: true
@@ -97,7 +101,7 @@ productRouter.put("/:id", tokenValidation, async (request, response) => {
                 return response.status(500).send(err.message)
             }
             //sends response
-            info(`product modified ${doc.name}`)
+            info(`product modified "${doc.name}"`)
             response.json(doc.toJSON())
         }
     )
@@ -113,7 +117,7 @@ productRouter.delete("/:id", tokenValidation, async (request, response) => {
     })
 
     //flags the product as deleted and saves it
-    Object.assign(product, { deleted: true })
+    Object.assign(product, { deleted: true, lastEdited: new Date })
     Product.findByIdAndUpdate(id, product, {}, async (err, doc) => {
         if (err) {
             error(err.message)
@@ -121,7 +125,7 @@ productRouter.delete("/:id", tokenValidation, async (request, response) => {
                 error: err.message
             })
         }
-        info(`product ${doc.name} deleted!`)
+        info(`product "${doc.name}" deleted!`)
         response.sendStatus(204)
     })
 })

@@ -16,7 +16,7 @@ blogRouter.get("/:id", async (request, response) => {
     const blog = await Blog.findById(request.params.id)
         .populate("user", { username: 1, id: 1 })
     //checks if there is no blog or if the blog has been flagged as deleted
-    if (!product || product.deleted) return response.send(404).send({
+    if (!blog || blog.deleted) return response.send(404).send({
         error: "blog not found"
     })
     //sends response
@@ -53,7 +53,7 @@ blogRouter.post("/", tokenValidation, async (request, response) => {
             })
         }
 
-        info(`blog ${blog.title} saved!`)
+        info(`blog "${blog.title}" saved!`)
 
         //finds user and updates it
         const user = await User.findById(userId)
@@ -108,14 +108,14 @@ blogRouter.put("/:id", tokenValidation, async (request, response) => {
             }
             //sends response
 
-            info(`blog modified ${doc.title}`)
+            info(`blog modified "${doc.title}"`)
             response.json(doc.toJSON())
         }
     )
 })
 
-blogRouter.delete("/id", tokenValidation, async (request, response) => {
-
+blogRouter.delete("/:id", tokenValidation, async (request, response) => {
+    
     //find the product and checks if it has been flagged as deleted
     const id = request.params.id
     const blog = await Blog.findById(id)
@@ -124,7 +124,7 @@ blogRouter.delete("/id", tokenValidation, async (request, response) => {
     })
 
     //deletes blog
-    Object.assign(blog, { deleted: true })
+    Object.assign(blog, { deleted: true, lastEdited: new Date })
     Blog.findByIdAndUpdate(id, blog, {}, (err, doc) => {
         if (err) {
             error(err.message)
@@ -132,7 +132,7 @@ blogRouter.delete("/id", tokenValidation, async (request, response) => {
                 error: err.message
             })
         }
-        info(`blog ${doc.name} deleted!`)
+        info(`blog "${doc.name}" deleted!`)
         response.sendStatus(204)
     })
 })

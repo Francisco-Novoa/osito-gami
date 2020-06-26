@@ -29,6 +29,10 @@ const productSchema = mongoose.Schema({
     }],
     deleted: {
         type: Boolean
+    },
+    price:{
+        type:Number,
+        required:true
     }
 })
 
