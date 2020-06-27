@@ -18,6 +18,5 @@ const db = mongoose.connection
 
 db.on('error', console.error.bind(console, `Mongodb Connection Error:  ${MONGODB_URI}` ))
 db.once('open', () => {
-    // we're connected !
     info('Mongodb Connection Successful')
 })
