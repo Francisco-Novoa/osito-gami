@@ -44,15 +44,14 @@ function Product() {
                     <CardMedia
                         className={classes.media}
                         image="https://via.placeholder.com/250"
-                        title="product title"
-                    />
+                        title="product title"/>
                     <CardContent >
                         <Typography className={classes.title} gutterBottom variant="h5" component="h2">
                             Joya #
-                  </Typography>
+                        </Typography>
                         <Typography className={classes.precio} gutterBottom variant="h5" component="h2">
                             Precio
-                  </Typography>
+                        </Typography>
                     </CardContent>
                 </CardActionArea>
             </Card>
@@ -64,18 +63,18 @@ function Product() {
 export default function WindowShop({ ...props }) {
     const classes = useStyles();
     return (
-        <Grid container direction="column" xs={12}>
+        <Grid container direction="column">
             <Grid item>
                 <Typography variant="h2" className={classes.title}>
                     Nuevos
                 </Typography>
             </Grid>
             <Grid item container xs={12} >
-                <Grid item xs={0} sm={1}></Grid>
-                <Grid container xs={12} sm={10}>
+                <Grid item xs={false} sm={1}></Grid>
+                <Grid item container xs={12} sm={10}>
                     
                     <Grid item xs={12} container>
-                        <Grid item xs={0} sm={9}></Grid>
+                        <Grid item xs={false} sm={9}></Grid>
                         <Grid
                             item
                             xs={12}
@@ -114,7 +113,7 @@ export default function WindowShop({ ...props }) {
                     </Grid>
 
                 </Grid>
-                <Grid item xs={0} sm={1}></Grid>
+                <Grid item xs={false} sm={1}></Grid>
             </Grid>
         </Grid>
     )

@@ -23,8 +23,8 @@ const useStyles = makeStyles((theme) => ({
     column: {
         marginTop: theme.spacing(2)
     },
-    iconsContact:{
-        paddingLeft:theme.spacing(1)
+    iconsContact: {
+        paddingLeft: theme.spacing(1)
     }
 }))
 
@@ -56,8 +56,8 @@ export default function Footer() {
             </Grid>
 
             <Grid
-                item
                 container
+                item
                 direction="column"
                 xs={12}
                 sm={6}
@@ -110,34 +110,57 @@ export default function Footer() {
                 md={3}
                 alignContent="space-around"
                 className={classes.column}>
+
                 <Grid container alignContent="center" justify="center">
                     <Typography variant="h5" className={classes.title}>
                         CONTACTO
                     </Typography>
                 </Grid>
+
                 <Grid container alignContent="center" justify="center">
-                    <Grid item xs={4} container justify="flex-end" >
+                    <Grid
+                        item
+                        xs={3}
+                        container
+                        justify="flex-end"
+                        alignContent="center">
                         <FaWhatsapp size={iconSize} color={"white"} />
                     </Grid>
-                    <Grid item xs={8} container justify="flex-start" className={classes.iconsContact}>
+                    <Grid
+                        item
+                        xs={9}
+                        container
+                        justify="flex-start"
+                        className={classes.iconsContact}
+                        alignContent="center">
                         <Typography variant="h6" className={classes.subtitle}>
                             : +569 77419498
                         </Typography>
                     </Grid>
                 </Grid>
+
                 <Grid container alignContent="center" justify="center">
-                    <Grid item xs={4} container justify="flex-end">
+                    <Grid
+                        item
+                        xs={3}
+                        container
+                        justify="flex-end"
+                        alignContent="center">
                         <FaRegEnvelope size={iconSize} color={"white"} />
                     </Grid>
-                    <Grid item xs={8} container justify="flex-start" className={classes.iconsContact}>
+                    <Grid
+                        item
+                        xs={9}
+                        container
+                        justify="flex-start"
+                        className={classes.iconsContact}
+                        alignContent="center">
                         <Typography variant="h6" className={classes.subtitle}>
                             : osito.gami.cl@gmail.com
                         </Typography>
                     </Grid>
                 </Grid>
-
             </Grid>
-
         </Grid>
     )
 } 
